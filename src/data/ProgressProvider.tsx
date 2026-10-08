@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useMemo,
   useSyncExternalStore,
   type ReactNode,
@@ -14,7 +15,7 @@ import {
   type GameProgress,
   type ProgressStore,
 } from './progress'
-import { browserStorage, fetchServerProgress, sendRound } from './supabaseProgress'
+import { browserStorage, createSupabaseAdapters } from './supabaseProgress'
 
 // eslint-disable-next-line react/only-export-components
 export const ProgressContext = createContext<ProgressStore | null>(null)
@@ -24,25 +25,39 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth()
   const userId = session?.user.id ?? null
 
-  const store = useMemo(
-    () =>
-      userId
-        ? createProgressStore({
-            storage: browserStorage(),
-            key: `brian.progress.v1.${userId}`,
-            send: sendRound,
-            fetchServer: fetchServerProgress,
-          })
-        : null,
-    [userId],
-  )
+  const store = useMemo(() => {
+    if (!userId) return null
+    const { sendRound, fetchServerProgress } = createSupabaseAdapters(userId)
+    return createProgressStore({
+      storage: browserStorage(),
+      key: `brian.progress.v1.${userId}`,
+      send: sendRound,
+      fetchServer: fetchServerProgress,
+    })
+  }, [userId])
+
+  // Dispose is deferred a tick so StrictMode's simulated unmount/remount (same store) doesn't kill it.
+  const pendingDispose = useRef<{ store: ProgressStore; timer: number } | null>(null)
 
   useEffect(() => {
     if (!store) return
+    if (pendingDispose.current?.store === store) {
+      clearTimeout(pendingDispose.current.timer)
+      pendingDispose.current = null
+    }
     void store.pullServerProgress().then(() => store.flush())
     const onOnline = () => void store.flush()
+    // iOS PWAs often miss `online`; coming back to the foreground is a good moment to retry too.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void store.flush()
+    }
     window.addEventListener('online', onOnline)
-    return () => window.removeEventListener('online', onOnline)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      document.removeEventListener('visibilitychange', onVisible)
+      pendingDispose.current = { store, timer: window.setTimeout(() => store.dispose(), 0) }
+    }
   }, [store])
 
   return <ProgressContext.Provider value={store}>{children}</ProgressContext.Provider>

@@ -35,6 +35,8 @@ export type ProgressStore = {
   flush(): Promise<void>
   pullServerProgress(): Promise<void>
   subscribe(listener: () => void): () => void
+  /** Stops all work for this store (user changed). Later calls are no-ops; in-flight work is abandoned. */
+  dispose(): void
 }
 
 export type ProgressStoreOptions = {
@@ -56,14 +58,25 @@ export const DEFAULT_PROGRESS: GameProgress = Object.freeze({
   lastPlayedAt: null,
 })
 
+/** crypto.randomUUID needs a secure context (and iOS 15.4+); build a v4 UUID by hand otherwise. */
+function defaultNewId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  const b = crypto.getRandomValues(new Uint8Array(16))
+  b[6] = (b[6]! & 0x0f) | 0x40
+  b[8] = (b[8]! & 0x3f) | 0x80
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+}
+
 const time = (iso: string | null) => (iso ? Date.parse(iso) : -Infinity)
 
 export function createProgressStore(opts: ProgressStoreOptions): ProgressStore {
-  const newId = opts.newId ?? (() => crypto.randomUUID())
+  const newId = opts.newId ?? defaultNewId
   const now = opts.now ?? (() => new Date())
   const listeners = new Set<() => void>()
   const rejected = new Set<string>()
   let inFlight: Promise<void> | null = null
+  let disposed = false
   let state: Persisted = load()
 
   function load(): Persisted {
@@ -90,7 +103,7 @@ export function createProgressStore(opts: ProgressStoreOptions): ProgressStore {
   }
 
   async function runFlush() {
-    while (state.outbox.length > 0) {
+    while (!disposed && state.outbox.length > 0) {
       const round = state.outbox[0]!
       let result: SendResult
       try {
@@ -98,7 +111,7 @@ export function createProgressStore(opts: ProgressStoreOptions): ProgressStore {
       } catch (e) {
         result = { ok: false, retry: true, message: String(e) }
       }
-      if (!result.ok && result.retry) return
+      if (disposed || (!result.ok && result.retry)) return
       if (!result.ok) {
         console.error(`Dropped round ${round.id}: ${result.message}`)
         rejected.add(round.id)
@@ -110,6 +123,7 @@ export function createProgressStore(opts: ProgressStoreOptions): ProgressStore {
   async function flush(): Promise<void> {
     // One run at a time; a caller arriving mid-run waits, then runs again to catch new rounds.
     while (inFlight) await inFlight
+    if (disposed) return
     inFlight = runFlush().finally(() => {
       inFlight = null
     })
@@ -122,6 +136,7 @@ export function createProgressStore(opts: ProgressStoreOptions): ProgressStore {
     pendingCount: () => state.outbox.length,
 
     async recordRound(input) {
+      if (disposed) return 'pending'
       const round: PendingRound = { ...input, id: newId(), playedAt: now().toISOString() }
       const prev = state.games[input.gameId] ?? DEFAULT_PROGRESS
       commit({
@@ -146,13 +161,18 @@ export function createProgressStore(opts: ProgressStoreOptions): ProgressStore {
 
     async pullServerProgress() {
       const rows = await opts.fetchServer()
-      if (!rows) return
+      if (!rows || disposed) return
       const games = { ...state.games }
       for (const { gameId, ...server } of rows) {
         const local = games[gameId]
         if (!local || time(server.lastPlayedAt) > time(local.lastPlayedAt)) games[gameId] = server
       }
       commit({ ...state, games })
+    },
+
+    dispose() {
+      disposed = true
+      listeners.clear()
     },
 
     subscribe(listener) {

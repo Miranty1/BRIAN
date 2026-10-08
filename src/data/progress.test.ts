@@ -266,4 +266,52 @@ describe('progress store', () => {
     await store.recordRound(input())
     expect(listener).not.toHaveBeenCalled()
   })
+
+  describe('dispose', () => {
+    it('stops a pending flush: no further sends and nothing committed', async () => {
+      const gates: Array<(r: SendResult) => void> = []
+      const { store, send, storage } = setup({
+        send: () => new Promise<SendResult>((resolve) => gates.push(resolve)),
+      })
+      void store.recordRound(input())
+      void store.recordRound(input({ score: 40 }))
+      await vi.waitFor(() => expect(gates).toHaveLength(1))
+      const before = (storage as ReturnType<typeof memoryStorage>).map.get('k')
+      store.dispose()
+      gates[0]!({ ok: true })
+      await new Promise((r) => setTimeout(r, 0))
+      expect(send).toHaveBeenCalledTimes(1)
+      expect((storage as ReturnType<typeof memoryStorage>).map.get('k')).toBe(before)
+      expect(store.pendingCount()).toBe(2)
+    })
+
+    it('ignores a server pull that resolves after dispose', async () => {
+      let resolve!: (rows: ServerProgress[]) => void
+      const { store } = setup({
+        fetchServer: () => new Promise<ServerProgress[]>((r) => (resolve = r)),
+      })
+      const pulled = store.pullServerProgress()
+      store.dispose()
+      resolve([
+        {
+          gameId: 'speed-arithmetic',
+          level: 9,
+          bestScore: 90,
+          roundsPlayed: 5,
+          lastPlayedAt: '2026-10-09T09:00:00.000Z',
+        },
+      ])
+      await pulled
+      expect(store.getGame('speed-arithmetic').level).toBe(1)
+    })
+
+    it('makes recordRound and flush no-ops', async () => {
+      const { store, send } = setup()
+      store.dispose()
+      await expect(store.recordRound(input())).resolves.toBe('pending')
+      await store.flush()
+      expect(send).not.toHaveBeenCalled()
+      expect(store.getGame('speed-arithmetic').roundsPlayed).toBe(0)
+    })
+  })
 })
