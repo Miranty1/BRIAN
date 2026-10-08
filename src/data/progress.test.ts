@@ -175,6 +175,80 @@ describe('progress store', () => {
     expect(store.getGame('speed-arithmetic').level).toBe(9)
   })
 
+  it('keeps local when the server record is the same instant in a different format', async () => {
+    const { store } = setup({
+      fetchServer: async () => [
+        {
+          gameId: 'speed-arithmetic',
+          level: 9,
+          bestScore: 99,
+          roundsPlayed: 50,
+          lastPlayedAt: '2026-10-09T10:00:00+00:00',
+        },
+      ],
+    })
+    await store.recordRound(input())
+    await store.pullServerProgress()
+    expect(store.getGame('speed-arithmetic').level).toBe(4)
+  })
+
+  it('adopts a server record that is 1 ms newer despite a different suffix', async () => {
+    const { store } = setup({
+      fetchServer: async () => [
+        {
+          gameId: 'speed-arithmetic',
+          level: 9,
+          bestScore: 99,
+          roundsPlayed: 50,
+          lastPlayedAt: '2026-10-09T10:00:00.001+00:00',
+        },
+      ],
+    })
+    await store.recordRound(input())
+    await store.pullServerProgress()
+    expect(store.getGame('speed-arithmetic').level).toBe(9)
+  })
+
+  it('sends a round recorded while another send is pending, in order', async () => {
+    const sent: string[] = []
+    const gates: Array<() => void> = []
+    const { store } = setup({
+      send: (r) =>
+        new Promise<SendResult>((resolve) => {
+          gates.push(() => {
+            sent.push((r as { id: string }).id)
+            resolve({ ok: true })
+          })
+        }),
+    })
+    const first = store.recordRound(input())
+    const second = store.recordRound(input({ score: 40 }))
+    await vi.waitFor(() => expect(gates).toHaveLength(1))
+    gates[0]!()
+    await vi.waitFor(() => expect(gates).toHaveLength(2))
+    gates[1]!()
+    await expect(Promise.all([first, second])).resolves.toEqual(['synced', 'synced'])
+    expect(sent).toEqual(['id-1', 'id-2'])
+    expect(store.pendingCount()).toBe(0)
+  })
+
+  it('handles overlapping flush calls cleanly', async () => {
+    let online = false
+    const sent: string[] = []
+    const { store } = setup({
+      send: async (r) => {
+        if (!online) return { ok: false, retry: true, message: 'offline' }
+        sent.push((r as { id: string }).id)
+        return { ok: true }
+      },
+    })
+    await store.recordRound(input())
+    online = true
+    await Promise.all([store.flush(), store.flush()])
+    expect(sent).toEqual(['id-1'])
+    expect(store.pendingCount()).toBe(0)
+  })
+
   it('works with no storage at all', async () => {
     const { store } = setup({ storage: null })
     await expect(store.recordRound(input())).resolves.toBe('synced')
