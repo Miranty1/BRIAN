@@ -7,14 +7,28 @@ const EnvSchema = z.object({
 
 export type AppEnv = { supabaseUrl: string; supabaseAnonKey: string }
 
-export function parseEnv(raw: Record<string, unknown>): AppEnv {
+export type EnvCheck = { ok: true; env: AppEnv } | { ok: false; invalid: string[] }
+
+export function checkEnv(raw: Record<string, unknown>): EnvCheck {
   const result = EnvSchema.safeParse(raw)
   if (!result.success) {
-    const fields = result.error.issues.map((i) => i.path.join('.')).join(', ')
-    throw new Error(`Invalid or missing env vars: ${fields}. Copy .env.example to .env.local.`)
+    return { ok: false, invalid: result.error.issues.map((i) => i.path.join('.')) }
   }
   return {
-    supabaseUrl: result.data.VITE_SUPABASE_URL,
-    supabaseAnonKey: result.data.VITE_SUPABASE_ANON_KEY,
+    ok: true,
+    env: {
+      supabaseUrl: result.data.VITE_SUPABASE_URL,
+      supabaseAnonKey: result.data.VITE_SUPABASE_ANON_KEY,
+    },
   }
+}
+
+export function parseEnv(raw: Record<string, unknown>): AppEnv {
+  const result = checkEnv(raw)
+  if (!result.ok) {
+    throw new Error(
+      `Invalid or missing env vars: ${result.invalid.join(', ')}. Copy .env.example to .env.local.`,
+    )
+  }
+  return result.env
 }

@@ -1,4 +1,4 @@
-import { parseEnv } from './env'
+import { checkEnv, parseEnv } from './env'
 
 describe('parseEnv', () => {
   it('returns the Supabase config when both vars are present', () => {
@@ -17,5 +17,20 @@ describe('parseEnv', () => {
     expect(() => parseEnv({ VITE_SUPABASE_URL: 'nope', VITE_SUPABASE_ANON_KEY: 'anon' })).toThrow(
       /VITE_SUPABASE_URL/,
     )
+  })
+})
+
+describe('checkEnv', () => {
+  it('lists every missing or invalid var instead of throwing', () => {
+    expect(checkEnv({ VITE_SUPABASE_URL: 'nope' })).toEqual({
+      ok: false,
+      invalid: ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'],
+    })
+  })
+
+  it('returns the config when valid', () => {
+    expect(
+      checkEnv({ VITE_SUPABASE_URL: 'https://x.supabase.co', VITE_SUPABASE_ANON_KEY: 'k' }),
+    ).toEqual({ ok: true, env: { supabaseUrl: 'https://x.supabase.co', supabaseAnonKey: 'k' } })
   })
 })
