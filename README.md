@@ -17,7 +17,7 @@ npm install
 supabase login            # opens the browser once
 npm run db:link           # pick your project; enter the database password
 npm run db:push           # creates the tables and security rules
-npm run db:test           # checks each user can only see their own data
+npm run db:test           # checks each user can only see their own data (no Docker needed)
 npm run db:types          # regenerates src/lib/database.types.ts
 cp .env.example .env.local  # fill in the URL and anon key from Project Settings → API
 npm run dev               # http://localhost:5173
@@ -40,7 +40,7 @@ Note that `db:push` changes your live database. The free tier has no automatic b
 
 ```sh
 npm run typecheck && npm run lint && npm test   # app
-npm run db:test                                 # database security tests (pgTAP, rolled back after)
+npm run db:test                                 # database security tests (pgTAP via scripts/db-test.mjs, rolled back after)
 ```
 
 ## Deploying to Vercel (free)

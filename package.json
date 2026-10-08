@@ -12,7 +12,7 @@
     "lint": "oxlint",
     "typecheck": "tsc -b",
     "format": "prettier --write .",
-    "db:test": "supabase test db --linked",
+    "db:test": "node scripts/db-test.mjs",
     "db:types": "supabase gen types typescript --linked --schema public > src/lib/database.types.ts",
     "db:link": "supabase link",
     "db:push": "supabase db push --linked",
