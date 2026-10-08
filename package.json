@@ -12,11 +12,11 @@
     "lint": "oxlint",
     "typecheck": "tsc -b",
     "format": "prettier --write .",
-    "db:start": "supabase start",
-    "db:stop": "supabase stop",
-    "db:reset": "supabase db reset",
-    "db:test": "supabase test db",
-    "db:types": "supabase gen types typescript --local > src/lib/database.types.ts"
+    "db:test": "supabase test db --linked",
+    "db:types": "supabase gen types typescript --linked --schema public > src/lib/database.types.ts",
+    "db:link": "supabase link",
+    "db:push": "supabase db push --linked",
+    "db:push:dry": "supabase db push --linked --dry-run"
   },
   "dependencies": {
     "@fontsource-variable/sora": "^5.3.0",
