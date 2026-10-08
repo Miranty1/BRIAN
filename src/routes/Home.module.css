@@ -1,0 +1,97 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.date {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.title {
+  margin-top: var(--space-1);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.workout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.tile {
+  aspect-ratio: 3 / 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  color: var(--on-track);
+}
+
+.pending {
+  background: transparent;
+  border: 1.5px dashed var(--line);
+  color: var(--ink-muted);
+}
+
+.tileName {
+  font-weight: 650;
+  line-height: var(--leading-tight);
+}
+
+.tileMeta {
+  font-size: var(--text-xs);
+  opacity: 0.8;
+}
+
+.note {
+  margin-top: calc(var(--space-3) * -1);
+  color: var(--ink-faint);
+  font-size: var(--text-sm);
+}
+
+.heading {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+.skills {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.skillDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.skillName {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.skillScore {
+  grid-column: 1 / -1;
+  margin-top: var(--space-2);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}

@@ -1,0 +1,96 @@
+/* Design tokens. Dark is the default; light overrides only colour tokens. */
+:root {
+  color-scheme: dark;
+
+  /* Neutrals: cool blue-slate night */
+  --bg: #161a22;
+  --surface: #1f2430;
+  --surface-raised: #282e3b;
+  --line: #313849;
+  --ink: #e9ecf2;
+  --ink-muted: #9aa3b5;
+  --ink-faint: #6b7489;
+  --on-track: #10131a;
+
+  /* Tracks: one bold hue each */
+  --track-math: #5b84ff;
+  --track-verbal: #ff6f86;
+  --track-memory: #f5b83d;
+  --track-focus: #31c7b8;
+  --track-math-soft: rgb(91 132 255 / 0.14);
+  --track-verbal-soft: rgb(255 111 134 / 0.14);
+  --track-memory-soft: rgb(245 184 61 / 0.14);
+  --track-focus-soft: rgb(49 199 184 / 0.14);
+
+  --correct: #3ccf8e;
+  --incorrect: #ff6b5b;
+  --focus-ring: #8fb0ff;
+
+  /* Type */
+  --font: 'Sora Variable', 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.625rem;
+  --text-2xl: 2.25rem;
+  --leading: 1.5;
+  --leading-tight: 1.15;
+
+  /* Space (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* Shape: hierarchy, not one radius for everything */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* Motion: snappy, not bouncy */
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --tap-min: 44px;
+  --content-max: 40rem;
+  --nav-height: 64px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f3f4f7;
+  --surface: #ffffff;
+  --surface-raised: #e9ebf0;
+  --line: #d9dce4;
+  --ink: #1b2030;
+  --ink-muted: #565f73;
+  --ink-faint: #858da0;
+  --on-track: #ffffff;
+
+  --track-math: #2f5ee8;
+  --track-verbal: #d83a57;
+  --track-memory: #a8730a;
+  --track-focus: #0f8c80;
+  --track-math-soft: rgb(47 94 232 / 0.1);
+  --track-verbal-soft: rgb(216 58 87 / 0.1);
+  --track-memory-soft: rgb(168 115 10 / 0.12);
+  --track-focus-soft: rgb(15 140 128 / 0.1);
+
+  --correct: #12a066;
+  --incorrect: #d8432f;
+  --focus-ring: #2f5ee8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-med: 0ms;
+  }
+}
