@@ -16,12 +16,14 @@
 
 .row {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   column-gap: var(--space-3);
   min-height: 64px;
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
 }
 
 .swatch {
@@ -38,4 +40,25 @@
 .blurb {
   color: var(--ink-muted);
   font-size: var(--text-sm);
+}
+
+.meta {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.playable .meta {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.playable:hover .name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.soon {
+  opacity: 0.55;
 }
