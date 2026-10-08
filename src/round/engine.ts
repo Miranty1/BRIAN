@@ -8,6 +8,8 @@ export type RoundState<Item> = {
   index: number
   itemStartedAt: number
   results: readonly ItemResult[]
+  /** Per-item time limit; recorded response times never exceed it. null = uncapped. */
+  limitMs: number | null
 }
 
 /** Every event carries the current time so the engine stays pure and testable. */
@@ -17,8 +19,15 @@ export type RoundEvent =
   | { type: 'timeout'; now: number }
   | { type: 'next'; now: number }
 
-export function initRound<Item>(items: readonly Item[]): RoundState<Item> {
-  return { phase: 'ready', items, index: 0, itemStartedAt: 0, results: [] }
+export function initRound<Item>(items: readonly Item[], limitMs?: number): RoundState<Item> {
+  return {
+    phase: 'ready',
+    items,
+    index: 0,
+    itemStartedAt: 0,
+    results: [],
+    limitMs: limitMs ?? null,
+  }
 }
 
 export function roundReducer<Item>(state: RoundState<Item>, event: RoundEvent): RoundState<Item> {
@@ -31,10 +40,12 @@ export function roundReducer<Item>(state: RoundState<Item>, event: RoundEvent): 
     case 'answer':
     case 'timeout': {
       if (state.phase !== 'item') return state
+      // A frozen (backgrounded) app fires overdue timers late; never record more than the limit.
+      const elapsed = Math.max(0, event.now - state.itemStartedAt)
       const result: ItemResult = {
         correct: event.type === 'answer' && event.correct,
         timedOut: event.type === 'timeout',
-        responseMs: Math.max(0, event.now - state.itemStartedAt),
+        responseMs: state.limitMs === null ? elapsed : Math.min(state.limitMs, elapsed),
       }
       return { ...state, phase: 'feedback', results: [...state.results, result] }
     }

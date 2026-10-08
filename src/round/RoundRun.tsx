@@ -25,10 +25,10 @@ const reducer = (state: RoundState<unknown>, event: RoundEvent) => roundReducer(
 
 export function RoundRun(props: Props) {
   const { gameModule, level, items, store } = props
-  const [state, dispatch] = useReducer(reducer, items, initRound)
+  const limit = gameModule.timeLimitMs(level)
+  const [state, dispatch] = useReducer(reducer, items, (it) => initRound(it, limit))
   const [saveStatus, setSaveStatus] = useState<SaveStatus | 'saving'>('saving')
   const saved = useRef(false)
-  const limit = gameModule.timeLimitMs(level)
   const result = lastResult(state)
 
   // Start once mounted (a second dispatch under StrictMode is ignored by the engine).
@@ -70,6 +70,7 @@ export function RoundRun(props: Props) {
         avgResponseMs: Math.round(stats.avgResponseMs),
       })
       .then(setSaveStatus)
+      .catch(() => setSaveStatus('pending'))
   }, [state.phase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (stats) {

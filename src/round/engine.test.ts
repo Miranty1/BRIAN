@@ -60,4 +60,33 @@ describe('round engine', () => {
   it('goes straight to done with no items', () => {
     expect(roundReducer(initRound([]), { type: 'start', now: 0 }).phase).toBe('done')
   })
+
+  describe('with a time limit', () => {
+    const playLimited = (events: RoundEvent[]) =>
+      events.reduce<RoundState<string>>((s, e) => roundReducer(s, e), initRound(['a', 'b'], 10000))
+
+    it('caps a timeout that fires long after the limit (app was frozen)', () => {
+      const s = playLimited([
+        { type: 'start', now: 0 },
+        { type: 'timeout', now: 300000 },
+      ])
+      expect(lastResult(s)).toEqual({ correct: false, timedOut: true, responseMs: 10000 })
+    })
+
+    it('caps a late answer too, but keeps its correctness', () => {
+      const s = playLimited([
+        { type: 'start', now: 0 },
+        { type: 'answer', correct: true, now: 300000 },
+      ])
+      expect(lastResult(s)).toEqual({ correct: true, timedOut: false, responseMs: 10000 })
+    })
+
+    it('leaves quick answers alone', () => {
+      const s = playLimited([
+        { type: 'start', now: 0 },
+        { type: 'answer', correct: true, now: 1200 },
+      ])
+      expect(lastResult(s)?.responseMs).toBe(1200)
+    })
+  })
 })

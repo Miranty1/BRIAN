@@ -80,6 +80,21 @@ describe('RoundScreen', () => {
     expect(store.getGame('speed-arithmetic').level).toBe(2)
   })
 
+  it('does not let time spent backgrounded inflate the average response time', () => {
+    renderRound()
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+    // The app freezes mid-item; the overdue timer fires only on return.
+    act(() => vi.setSystemTime(Date.now() + 300000))
+    act(() => vi.advanceTimersByTime(10000))
+    act(() => vi.advanceTimersByTime(1000)) // wrong-answer pause
+    for (let i = 1; i < 10; i++) {
+      type(solve(problem()))
+      act(() => vi.advanceTimersByTime(250))
+    }
+    const avg = screen.getByText('Average time').nextElementSibling!.textContent!
+    expect(parseFloat(avg)).toBeLessThanOrEqual(10) // level 1 limit
+  })
+
   it('shows the right answer after a wrong answer and after a timeout', () => {
     renderRound()
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))
