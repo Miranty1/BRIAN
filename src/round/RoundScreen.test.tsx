@@ -1,0 +1,114 @@
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { ProgressContext } from '@/data/ProgressProvider'
+import { createProgressStore, type PendingRound, type SendResult } from '@/data/progress'
+import { RoundScreen } from './RoundScreen'
+
+function solve(text: string) {
+  const [a, op, b] = text.split(' ')
+  const x = Number(a)
+  const y = Number(b)
+  return String(op === '+' ? x + y : op === '−' ? x - y : op === '×' ? x * y : x / y)
+}
+/** Same length as the answer but different, so the pad auto-submits a wrong answer. */
+const wrongFor = (answer: string) =>
+  answer
+    .split('')
+    .map((d) => (d === '9' ? '8' : String(Number(d) + 1)))
+    .join('')
+const type = (digits: string) => {
+  for (const d of digits) fireEvent.click(screen.getByRole('button', { name: d }))
+}
+const problem = () => screen.getByTestId('problem').textContent!
+const flushPromises = () =>
+  act(async () => {
+    for (let i = 0; i < 20; i++) await Promise.resolve()
+  })
+
+function renderRound(path = '/play/speed-arithmetic') {
+  const send = vi.fn(async (_round: PendingRound): Promise<SendResult> => ({ ok: true }))
+  const store = createProgressStore({
+    storage: null,
+    key: 'test',
+    send,
+    fetchServer: async () => [],
+  })
+  render(
+    <ProgressContext.Provider value={store}>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/play" element={<p>games list</p>} />
+          <Route path="/play/:gameId" element={<RoundScreen />} />
+        </Routes>
+      </MemoryRouter>
+    </ProgressContext.Provider>,
+  )
+  return { store, send }
+}
+
+beforeEach(() => {
+  vi.useFakeTimers()
+})
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+describe('RoundScreen', () => {
+  it('plays a full round, shows the summary and saves it', async () => {
+    const { store, send } = renderRound()
+    expect(screen.getByText('Level 1')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+
+    for (let i = 0; i < 10; i++) {
+      type(solve(problem()))
+      act(() => vi.advanceTimersByTime(250))
+    }
+
+    expect(screen.getByLabelText('Score 100 out of 100')).toBeInTheDocument()
+    expect(screen.getByText('1 → 2')).toBeInTheDocument()
+    expect(screen.getByText('New personal best')).toBeInTheDocument()
+    await flushPromises()
+    expect(screen.getByText('Saved')).toBeInTheDocument()
+    expect(send).toHaveBeenCalledTimes(1)
+    expect(send.mock.calls[0]![0]).toMatchObject({
+      gameId: 'speed-arithmetic',
+      level: 1,
+      newLevel: 2,
+      score: 100,
+      accuracy: 1,
+    })
+    expect(store.getGame('speed-arithmetic').level).toBe(2)
+  })
+
+  it('shows the right answer after a wrong answer and after a timeout', () => {
+    renderRound()
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+
+    const first = solve(problem())
+    type(wrongFor(first))
+    expect(screen.getByTestId('answer')).toHaveTextContent(first)
+    expect(screen.getByTestId('stage')).toHaveAttribute('data-feedback', 'wrong')
+
+    act(() => vi.advanceTimersByTime(1000))
+    const second = solve(problem())
+    act(() => vi.advanceTimersByTime(10000)) // level 1 limit
+    expect(screen.getByTestId('answer')).toHaveTextContent(second)
+    expect(screen.getByTestId('stage')).toHaveAttribute('data-feedback', 'wrong')
+  })
+
+  it('saves nothing when you quit mid-round', () => {
+    const { store, send } = renderRound()
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+    type(solve(problem()))
+    fireEvent.click(screen.getByRole('button', { name: 'Quit round' }))
+    expect(screen.getByText('games list')).toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(20000))
+    expect(send).not.toHaveBeenCalled()
+    expect(store.getGame('speed-arithmetic').roundsPlayed).toBe(0)
+  })
+
+  it('sends unknown or unbuilt games back to the library', () => {
+    renderRound('/play/rule-switch')
+    expect(screen.getByText('games list')).toBeInTheDocument()
+  })
+})

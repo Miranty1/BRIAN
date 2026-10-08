@@ -1,0 +1,254 @@
+.screen {
+  --track: var(--track-math);
+  min-height: 100dvh;
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: calc(var(--space-3) + env(safe-area-inset-top, 0px)) var(--space-4)
+    calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+}
+
+.quit {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-lg);
+}
+
+.quit:hover {
+  color: var(--ink);
+}
+
+.trackButton {
+  background: var(--track);
+  color: var(--on-track);
+}
+
+/* Ready */
+.ready {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.readyBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.readyTrack {
+  color: var(--track);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.readyTitle {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+.readyLevel {
+  font-size: var(--text-lg);
+}
+
+.readyHint {
+  color: var(--ink-muted);
+}
+
+.start {
+  width: 100%;
+  min-height: 56px;
+  font-size: var(--text-lg);
+}
+
+/* Run */
+.run {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.top {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.segments {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segment {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-raised);
+  transition: background var(--dur-med);
+}
+
+.segment[data-status='current'] {
+  background: var(--ink-faint);
+}
+
+.segment[data-status='right'] {
+  background: var(--track);
+}
+
+.segment[data-status='wrong'] {
+  background: var(--incorrect);
+}
+
+.timerTrack {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--surface-raised);
+}
+
+.timerFill {
+  height: 100%;
+  background: var(--track);
+  transform-origin: left;
+  animation-name: drain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-play-state: paused;
+}
+
+.timerFill[data-running='true'] {
+  animation-play-state: running;
+}
+
+@keyframes drain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.stage[data-feedback='correct'] {
+  animation: pulse 220ms var(--ease-out);
+}
+
+.stage[data-feedback='wrong'] {
+  animation: shake 320ms var(--ease-out);
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes shake {
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(7px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage[data-feedback] {
+    animation: none;
+  }
+}
+
+/* Summary */
+.summary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.summaryGame {
+  color: var(--ink-muted);
+}
+
+.score {
+  font-size: clamp(4rem, 22vw, 6rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--track);
+}
+
+.best {
+  font-weight: 600;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.stats div {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.stats dt {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.stats dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.stats dd[data-change='up'] {
+  color: var(--correct);
+}
+
+.stats dd[data-change='down'] {
+  color: var(--incorrect);
+}
+
+.save {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-top: auto;
+}

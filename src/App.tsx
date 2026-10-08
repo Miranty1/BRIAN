@@ -8,6 +8,7 @@ import { Login } from '@/routes/Login'
 import { Play } from '@/routes/Play'
 import { Settings } from '@/routes/Settings'
 import { Stats } from '@/routes/Stats'
+import { RoundScreen } from '@/round/RoundScreen'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 
 export function App() {
@@ -19,6 +20,7 @@ export function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route element={<RequireAuth />}>
+                <Route path="play/:gameId" element={<RoundScreen />} />
                 <Route element={<AppShell />}>
                   <Route index element={<Home />} />
                   <Route path="play" element={<Play />} />
