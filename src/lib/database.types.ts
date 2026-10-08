@@ -250,7 +250,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      record_round: {
+        Args: {
+          p_accuracy: number
+          p_avg_response_ms: number
+          p_game_id: string
+          p_id: string
+          p_level: number
+          p_new_level: number
+          p_played_at: string
+          p_score: number
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
