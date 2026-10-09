@@ -1,4 +1,4 @@
-import { nextLevel, scoreRound } from './scoring'
+import { isPersonalBest, nextLevel, scoreRound } from './scoring'
 import type { ItemResult } from './types'
 
 const r = (correct: boolean, responseMs: number, timedOut = false): ItemResult => ({
@@ -61,5 +61,14 @@ describe('nextLevel', () => {
   it('clamps to 1–20', () => {
     expect(nextLevel(20, 100)).toBe(20)
     expect(nextLevel(1, 0)).toBe(1)
+  })
+})
+
+describe('isPersonalBest', () => {
+  it('needs a score above the previous best; a first round needs more than 0', () => {
+    expect(isPersonalBest(null, 0)).toBe(false)
+    expect(isPersonalBest(null, 1)).toBe(true)
+    expect(isPersonalBest(70, 70)).toBe(false)
+    expect(isPersonalBest(70, 71)).toBe(true)
   })
 })

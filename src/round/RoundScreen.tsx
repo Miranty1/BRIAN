@@ -20,6 +20,8 @@ export function RoundScreen() {
   const [run, setRun] = useState<Run | null>(null)
 
   if (!gameModule || !store) return <Navigate to="/play" replace />
+  if (gameModule.kind !== 'items') return <Navigate to="/play" replace />
+  const itemModule = gameModule
 
   const game = gameById(gameModule.id)
   const track = TRACKS[game.track]
@@ -30,7 +32,7 @@ export function RoundScreen() {
       id: (prev?.id ?? 0) + 1,
       level: progress.level,
       prevBest: progress.bestScore,
-      items: gameModule!.generate(progress.level, createRng(Date.now())),
+      items: itemModule.generate(progress.level, createRng(Date.now())),
     }))
   }
 
@@ -59,7 +61,8 @@ export function RoundScreen() {
             <h1 className={styles.readyTitle}>{game.name}</h1>
             <p className={styles.readyLevel}>Level {progress.level}</p>
             <p className={styles.readyHint}>
-              {gameModule.itemsPerRound} questions, each against the clock.
+              {gameModule.readyHint ??
+                `${gameModule.itemsPerRound} questions, each against the clock.`}
             </p>
           </div>
           <button className={`${ui.button} ${styles.trackButton} ${styles.start}`} onClick={start}>

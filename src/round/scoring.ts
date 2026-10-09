@@ -25,3 +25,8 @@ export function nextLevel(level: number, score: number): number {
   const delta = score >= LEVEL_UP_AT ? 1 : score <= LEVEL_DOWN_AT ? -1 : 0
   return clamp(level + delta, MIN_LEVEL, MAX_LEVEL)
 }
+
+/** A first round counts as a best only if it scored something. */
+export function isPersonalBest(prevBest: number | null, score: number): boolean {
+  return prevBest === null ? score > 0 : score > prevBest
+}

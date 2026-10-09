@@ -80,6 +80,11 @@ describe('RoundScreen', () => {
     expect(store.getGame('speed-arithmetic').level).toBe(2)
   })
 
+  it('shows the default hint for a game without its own', () => {
+    renderRound()
+    expect(screen.getByText('10 questions, each against the clock.')).toBeInTheDocument()
+  })
+
   it('does not let time spent backgrounded inflate the average response time', () => {
     renderRound()
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))

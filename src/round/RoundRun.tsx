@@ -1,16 +1,17 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
-import type { ProgressStore, SaveStatus } from '@/data/progress'
-import type { AnyGameModule } from '@/games/types'
+import { useEffect, useMemo, useReducer } from 'react'
+import type { ProgressStore } from '@/data/progress'
+import type { AnyItemGameModule } from '@/games/types'
 import { initRound, lastResult, roundReducer, type RoundEvent, type RoundState } from './engine'
 import { RoundSummary } from './RoundSummary'
 import styles from './RoundScreen.module.css'
-import { nextLevel, scoreRound } from './scoring'
+import { isPersonalBest, nextLevel, scoreRound } from './scoring'
+import { useSaveRound } from './useSaveRound'
 
 export const CORRECT_PAUSE_MS = 250
 export const WRONG_PAUSE_MS = 1000
 
 type Props = {
-  gameModule: AnyGameModule
+  gameModule: AnyItemGameModule
   gameName: string
   level: number
   prevBest: number | null
@@ -27,8 +28,6 @@ export function RoundRun(props: Props) {
   const { gameModule, level, items, store } = props
   const limit = gameModule.timeLimitMs(level)
   const [state, dispatch] = useReducer(reducer, items, (it) => initRound(it, limit))
-  const [saveStatus, setSaveStatus] = useState<SaveStatus | 'saving'>('saving')
-  const saved = useRef(false)
   const result = lastResult(state)
 
   // Start once mounted (a second dispatch under StrictMode is ignored by the engine).
@@ -56,34 +55,34 @@ export function RoundRun(props: Props) {
     state.phase === 'done' ? scoreRound(state.results, gameModule.targetTimeMs(level)) : null
   const newLevel = stats ? nextLevel(level, stats.score) : level
 
-  // Save exactly once when the round finishes.
-  useEffect(() => {
-    if (!stats || saved.current) return
-    saved.current = true
-    void store
-      .recordRound({
-        gameId: gameModule.id,
-        level,
-        newLevel,
-        score: stats.score,
-        accuracy: stats.accuracy,
-        avgResponseMs: Math.round(stats.avgResponseMs),
-      })
-      .then(setSaveStatus)
-      .catch(() => setSaveStatus('pending'))
-  }, [state.phase]) // eslint-disable-line react-hooks/exhaustive-deps
+  const input = useMemo(
+    () =>
+      stats
+        ? {
+            gameId: gameModule.id,
+            level,
+            newLevel,
+            score: stats.score,
+            accuracy: stats.accuracy,
+            avgResponseMs: Math.round(stats.avgResponseMs),
+          }
+        : null,
+    [state.phase], // eslint-disable-line react-hooks/exhaustive-deps
+  )
+  const saveStatus = useSaveRound(store, input)
 
   if (stats) {
-    const isPersonalBest = props.prevBest === null ? stats.score > 0 : stats.score > props.prevBest
     return (
       <RoundSummary
         gameName={props.gameName}
         score={stats.score}
-        accuracy={stats.accuracy}
-        avgResponseMs={stats.avgResponseMs}
+        stats={[
+          { label: 'Accuracy', value: `${Math.round(stats.accuracy * 100)}%` },
+          { label: 'Average time', value: `${(stats.avgResponseMs / 1000).toFixed(1)} s` },
+        ]}
         level={level}
         newLevel={newLevel}
-        isPersonalBest={isPersonalBest}
+        isPersonalBest={isPersonalBest(props.prevBest, stats.score)}
         saveStatus={saveStatus}
         onPlayAgain={props.onPlayAgain}
         onDone={props.onDone}

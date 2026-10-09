@@ -1,12 +1,12 @@
 import ui from '@/components/ui.module.css'
 import type { SaveStatus } from '@/data/progress'
+import type { SummaryStat } from '@/games/types'
 import styles from './RoundScreen.module.css'
 
 type Props = {
   gameName: string
   score: number
-  accuracy: number
-  avgResponseMs: number
+  stats: SummaryStat[]
   level: number
   newLevel: number
   isPersonalBest: boolean
@@ -34,14 +34,12 @@ export function RoundSummary(p: Props) {
       </p>
       {p.isPersonalBest && <p className={styles.best}>New personal best</p>}
       <dl className={styles.stats}>
-        <div>
-          <dt>Accuracy</dt>
-          <dd>{Math.round(p.accuracy * 100)}%</dd>
-        </div>
-        <div>
-          <dt>Average time</dt>
-          <dd>{(p.avgResponseMs / 1000).toFixed(1)} s</dd>
-        </div>
+        {p.stats.map((s) => (
+          <div key={s.label}>
+            <dt>{s.label}</dt>
+            <dd>{s.value}</dd>
+          </div>
+        ))}
         <div>
           <dt>Level</dt>
           <dd data-change={change}>{levelText}</dd>

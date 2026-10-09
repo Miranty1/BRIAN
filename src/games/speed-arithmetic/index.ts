@@ -9,6 +9,7 @@ import {
 import { SpeedArithmeticView } from './SpeedArithmeticView'
 
 export const speedArithmetic: GameModule<ArithItem, string> = {
+  kind: 'items',
   id: 'speed-arithmetic',
   itemsPerRound: ITEMS_PER_ROUND,
   generate: (level, rng) => generateItems(level, rng, ITEMS_PER_ROUND),

@@ -11,10 +11,16 @@ export type ItemViewProps<Item, Answer> = {
   feedback: ItemFeedback | null
 }
 
-/** What a game plugs into the shared round shell. */
+/** One line in the end-of-round summary, e.g. { label: 'Accuracy', value: '90%' }. */
+export type SummaryStat = { label: string; value: string }
+
+/** What an item-based game plugs into the shared round shell. */
 export interface GameModule<Item, Answer> {
+  kind: 'items'
   id: GameId
   itemsPerRound: number
+  /** Ready-screen text; defaults to "N questions, each against the clock." */
+  readyHint?: string
   generate(level: number, rng: Rng): Item[]
   /** Hard per-item limit; running out counts as wrong. */
   timeLimitMs(level: number): number
@@ -26,6 +32,30 @@ export interface GameModule<Item, Answer> {
   ItemView: ComponentType<ItemViewProps<Item, Answer>>
 }
 
+/** What a run-format game (Sequence Recall) reports when its run ends. */
+export type RunResult = {
+  score: number
+  accuracy: number
+  avgResponseMs: number
+  stats: SummaryStat[]
+}
+
+export type RunViewProps = {
+  level: number
+  rng: Rng
+  onFinish(result: RunResult): void
+  onQuit(): void
+}
+
+/** A game that runs its own loop and only hands back a result. */
+export type RunGameModule = {
+  kind: 'run'
+  id: GameId
+  readyHint: string
+  RunView: ComponentType<RunViewProps>
+}
+
 // Modules differ in Item/Answer; the shell only passes each module its own values back.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyGameModule = GameModule<any, any>
+export type AnyItemGameModule = GameModule<any, any>
+export type AnyGameModule = AnyItemGameModule | RunGameModule
