@@ -2,6 +2,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ProgressContext } from '@/data/ProgressProvider'
 import { createProgressStore, type PendingRound, type SendResult } from '@/data/progress'
+import { moneyMaths } from '@/games/money-maths'
+import { createRng } from '@/lib/rng'
 import { RoundScreen } from './RoundScreen'
 
 function solve(text: string) {
@@ -130,5 +132,19 @@ describe('RoundScreen', () => {
   it('sends unknown or unbuilt games back to the library', () => {
     renderRound('/play/rule-switch')
     expect(screen.getByText('games list')).toBeInTheDocument()
+  })
+
+  it('plays a full Money Maths round with the choice grid', async () => {
+    vi.setSystemTime(1234)
+    const items = moneyMaths.generate(1, createRng(1234)) // RoundScreen seeds with Date.now()
+    const { send } = renderRound('/play/money-maths')
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+    for (const it of items) {
+      fireEvent.click(screen.getByRole('button', { name: moneyMaths.answerLabel(it) }))
+      act(() => vi.advanceTimersByTime(250))
+    }
+    expect(screen.getByLabelText('Score 100 out of 100')).toBeInTheDocument()
+    await flushPromises()
+    expect(send.mock.calls[0]![0]).toMatchObject({ gameId: 'money-maths', accuracy: 1 })
   })
 })
