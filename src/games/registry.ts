@@ -1,5 +1,6 @@
 import type { GameId } from './games'
 import { moneyMaths } from './money-maths'
+import { tableReasoning } from './table-reasoning'
 import { speedArithmetic } from './speed-arithmetic'
 import type { AnyGameModule } from './types'
 
@@ -7,6 +8,7 @@ import type { AnyGameModule } from './types'
 const GAME_MODULES: Partial<Record<GameId, AnyGameModule>> = {
   'speed-arithmetic': speedArithmetic,
   'money-maths': moneyMaths,
+  'table-reasoning': tableReasoning,
 }
 
 export function getGameModule(id: string): AnyGameModule | undefined {

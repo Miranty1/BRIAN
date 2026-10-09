@@ -1,0 +1,58 @@
+.view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Table and question scroll if needed; the answers stay put at the bottom. */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.caption {
+  caption-side: top;
+  text-align: left;
+  padding-bottom: var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--surface-raised);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table thead th {
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.table tbody th {
+  text-align: left;
+  font-weight: 600;
+}
+
+.prompt {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
