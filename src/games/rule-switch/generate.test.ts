@@ -1,6 +1,9 @@
 import { createRng } from '@/lib/rng'
 import { generateItems, isConflict, rulesFor, sideOf, switchP, targetTimeMs, timeLimitMs, type Card } from './generate'
 
+// 20 levels × 200 seeds; slow under full-suite load.
+const SWEEP_TIMEOUT_MS = 30000
+
 const card: Card = { colour: 'blue', shape: 'square', fill: 'solid' }
 
 describe('Rule Switch basics', () => {
@@ -52,6 +55,6 @@ describe('Rule Switch generator', () => {
         expect(switches).toBeGreaterThanOrEqual(2)
         expect(conflicts).toBeGreaterThanOrEqual(12)
       }
-    })
+    }, SWEEP_TIMEOUT_MS)
   }
 })

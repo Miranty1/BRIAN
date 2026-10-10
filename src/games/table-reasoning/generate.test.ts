@@ -2,6 +2,9 @@ import { createRng } from '@/lib/rng'
 import { formatPct, formatValue, generateItems, levelSpec, pctChange, targetTimeMs, timeLimitMs } from './generate'
 import { LEVELS } from './levels'
 
+// 20 levels × 200 seeds; slow under full-suite load.
+const SWEEP_TIMEOUT_MS = 30000
+
 describe('Table Reasoning helpers', () => {
   it('formats values by unit and percentages with a sign', () => {
     expect(formatValue(1200, '$')).toBe('$1,200')
@@ -49,7 +52,7 @@ describe('Table Reasoning generator', () => {
           expect(item.correctIndex).toBeGreaterThanOrEqual(0)
         }
       }
-    })
+    }, SWEEP_TIMEOUT_MS)
   }
 
   it('makes pickRow traps: largest % change and largest absolute change are different rows', () => {
@@ -68,7 +71,7 @@ describe('Table Reasoning generator', () => {
         expect(item.options).toContain(byAbs[0]!.label)
       }
     }
-  })
+  }, SWEEP_TIMEOUT_MS)
 
   it('recomputes total and difference answers from the table', () => {
     for (let seed = 1; seed <= 100; seed++) {

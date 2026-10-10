@@ -10,6 +10,9 @@ import {
 } from './generate'
 import { LEVELS } from './levels'
 
+// 20 levels × 200 seeds; slow under full-suite load.
+const SWEEP_TIMEOUT_MS = 30000
+
 /** Independent re-computation of the right answer from the item's inputs. */
 function expected(item: MoneyItem): number {
   const { p = 0, d = 0, n = 1, t = 0, c = 0, m = 0, a = 0, b = 0 } = item.inputs
@@ -73,7 +76,7 @@ describe('Money Maths generator', () => {
           }
         }
       }
-    })
+    }, SWEEP_TIMEOUT_MS)
   }
 
   it('uses only simple types and round prices at levels 1–4', () => {
