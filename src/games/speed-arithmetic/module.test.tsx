@@ -22,7 +22,7 @@ describe('speedArithmetic module', () => {
 
   it('is in the registry; unbuilt and unknown games are not', () => {
     expect(getGameModule('speed-arithmetic')).toBe(speedArithmetic)
-    expect(getGameModule('rule-switch')).toBeUndefined()
+    expect(getGameModule('detail-recall')).toBeUndefined()
     expect(getGameModule('nope')).toBeUndefined()
   })
 })

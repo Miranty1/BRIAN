@@ -2,6 +2,7 @@ import type { GameId } from './games'
 import { moneyMaths } from './money-maths'
 import { tableReasoning } from './table-reasoning'
 import { speedArithmetic } from './speed-arithmetic'
+import { ruleSwitch } from './rule-switch'
 import type { AnyGameModule } from './types'
 
 /** Games that are playable. Games missing here show as "Coming soon". */
@@ -9,6 +10,7 @@ const GAME_MODULES: Partial<Record<GameId, AnyGameModule>> = {
   'speed-arithmetic': speedArithmetic,
   'money-maths': moneyMaths,
   'table-reasoning': tableReasoning,
+  'rule-switch': ruleSwitch,
 }
 
 export function getGameModule(id: string): AnyGameModule | undefined {

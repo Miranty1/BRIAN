@@ -130,7 +130,7 @@ describe('RoundScreen', () => {
   })
 
   it('sends unknown or unbuilt games back to the library', () => {
-    renderRound('/play/rule-switch')
+    renderRound('/play/detail-recall')
     expect(screen.getByText('games list')).toBeInTheDocument()
   })
 
