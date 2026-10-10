@@ -34,7 +34,7 @@ describe('Play', () => {
     expect(link).toHaveTextContent('Level 3')
   })
 
-  it('marks the other 5 games as coming soon', () => {
+  it('marks the other 4 games as coming soon', () => {
     renderPlay()
     expect(screen.getAllByText('Coming soon')).toHaveLength(4)
     expect(screen.getAllByRole('link')).toHaveLength(5)
