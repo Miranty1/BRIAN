@@ -14,6 +14,7 @@ const item: TableItem = {
     rowNoun: 'store',
     colNoun: 'month',
     measure: 'sales',
+    be: 'were',
     columns: ['Jan', 'Feb'],
     rows: [
       { label: 'Store A', values: [1200, 1500] },

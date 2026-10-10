@@ -11,6 +11,8 @@ export type Table = {
   rowNoun: string
   colNoun: string
   measure: string
+  /** Verb agreeing with `measure`: "was" / "were". */
+  be: Theme['be']
   columns: string[]
   rows: { label: string; values: number[] }[]
 }
@@ -59,6 +61,7 @@ function makeTable(theme: Theme, spec: TableLevel, rng: Rng): Table {
     rowNoun: theme.rowNoun,
     colNoun: theme.colNoun,
     measure: theme.measure,
+    be: theme.be,
     columns: theme.columns.slice(0, spec.cols),
     rows: theme.rows.slice(0, spec.rows).map((label) => ({
       label,
