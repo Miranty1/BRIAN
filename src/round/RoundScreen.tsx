@@ -7,9 +7,16 @@ import { getGameModule } from '@/games/registry'
 import { TRACKS } from '@/games/tracks'
 import { createRng } from '@/lib/rng'
 import { RoundRun } from './RoundRun'
+import { RunRound } from './RunRound'
 import styles from './RoundScreen.module.css'
 
-type Run = { id: number; level: number; prevBest: number | null; items: readonly unknown[] }
+type Run = {
+  id: number
+  level: number
+  prevBest: number | null
+  seed: number
+  items: readonly unknown[]
+}
 
 export function RoundScreen() {
   const { gameId = '' } = useParams()
@@ -20,37 +27,54 @@ export function RoundScreen() {
   const [run, setRun] = useState<Run | null>(null)
 
   if (!gameModule || !store) return <Navigate to="/play" replace />
-  if (gameModule.kind !== 'items') return <Navigate to="/play" replace />
-  const itemModule = gameModule
 
+  const activeModule = gameModule
   const game = gameById(gameModule.id)
   const track = TRACKS[game.track]
   const toLibrary = () => navigate('/play')
 
   function start() {
+    const seed = Date.now()
     setRun((prev) => ({
       id: (prev?.id ?? 0) + 1,
       level: progress.level,
       prevBest: progress.bestScore,
-      items: itemModule.generate(progress.level, createRng(Date.now())),
+      seed,
+      items:
+        activeModule.kind === 'items' ? activeModule.generate(progress.level, createRng(seed)) : [],
     }))
   }
 
   return (
     <div className={styles.screen} style={{ '--track': track.colour } as CSSProperties}>
       {run ? (
-        <RoundRun
-          key={run.id}
-          gameModule={gameModule}
-          gameName={game.name}
-          level={run.level}
-          prevBest={run.prevBest}
-          items={run.items}
-          store={store}
-          onQuit={toLibrary}
-          onPlayAgain={start}
-          onDone={toLibrary}
-        />
+        gameModule.kind === 'run' ? (
+          <RunRound
+            key={run.id}
+            gameModule={gameModule}
+            gameName={game.name}
+            level={run.level}
+            prevBest={run.prevBest}
+            seed={run.seed}
+            store={store}
+            onQuit={toLibrary}
+            onPlayAgain={start}
+            onDone={toLibrary}
+          />
+        ) : (
+          <RoundRun
+            key={run.id}
+            gameModule={gameModule}
+            gameName={game.name}
+            level={run.level}
+            prevBest={run.prevBest}
+            items={run.items}
+            store={store}
+            onQuit={toLibrary}
+            onPlayAgain={start}
+            onDone={toLibrary}
+          />
+        )
       ) : (
         <div className={styles.ready}>
           <button className={styles.quit} onClick={toLibrary} aria-label="Back to games">
@@ -62,7 +86,9 @@ export function RoundScreen() {
             <p className={styles.readyLevel}>Level {progress.level}</p>
             <p className={styles.readyHint}>
               {gameModule.readyHint ??
-                `${gameModule.itemsPerRound} questions, each against the clock.`}
+                (gameModule.kind === 'items'
+                  ? `${gameModule.itemsPerRound} questions, each against the clock.`
+                  : '')}
             </p>
           </div>
           <button className={`${ui.button} ${styles.trackButton} ${styles.start}`} onClick={start}>
