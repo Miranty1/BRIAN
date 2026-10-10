@@ -25,6 +25,27 @@
 .card {
   width: min(45vw, 180px);
   height: auto;
+  /* The item view remounts per card, so this signals a new card even when it repeats. */
+  animation: cardIn 120ms var(--ease-out);
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation-name: cardFade;
+  }
+
+  @keyframes cardFade {
+    from {
+      opacity: 0;
+    }
+  }
 }
 
 .sides {
