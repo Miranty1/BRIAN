@@ -1,5 +1,12 @@
 import type { GameModule } from '@/games/types'
-import { generateItems, ITEMS_PER_ROUND, targetTimeMs, timeLimitMs, type RuleItem, type Side } from './generate'
+import {
+  generateItems,
+  ITEMS_PER_ROUND,
+  targetTimeMs,
+  timeLimitMs,
+  type RuleItem,
+  type Side,
+} from './generate'
 import { RuleSwitchView } from './RuleSwitchView'
 
 const cap = (s: string) => s[0]!.toUpperCase() + s.slice(1)

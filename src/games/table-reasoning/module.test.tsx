@@ -37,7 +37,11 @@ describe('TableReasoningView', () => {
   it('renders the table with headers and formatted cells', () => {
     render(<TableReasoningView item={item} onAnswer={vi.fn()} feedback={null} />)
     const table = screen.getByRole('table', { name: 'Sales by store ($)' })
-    expect(within(table).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['', 'Jan', 'Feb'])
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((h) => h.textContent),
+    ).toEqual(['', 'Jan', 'Feb'])
     expect(within(table).getByRole('rowheader', { name: 'Store A' })).toBeInTheDocument()
     expect(within(table).getByText('$1,500')).toBeInTheDocument()
   })

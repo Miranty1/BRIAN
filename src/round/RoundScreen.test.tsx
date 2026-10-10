@@ -176,6 +176,10 @@ describe('RoundScreen', () => {
     expect(screen.getByLabelText('Score 80 out of 100')).toBeInTheDocument()
     expect(screen.getByText('1 → 2')).toBeInTheDocument()
     await flushPromises()
-    expect(send.mock.calls[0]![0]).toMatchObject({ gameId: 'sequence-recall', score: 80, newLevel: 2 })
+    expect(send.mock.calls[0]![0]).toMatchObject({
+      gameId: 'sequence-recall',
+      score: 80,
+      newLevel: 2,
+    })
   })
 })

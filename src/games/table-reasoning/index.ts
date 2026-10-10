@@ -1,5 +1,11 @@
 import type { GameModule } from '@/games/types'
-import { generateItems, ITEMS_PER_ROUND, targetTimeMs, timeLimitMs, type TableItem } from './generate'
+import {
+  generateItems,
+  ITEMS_PER_ROUND,
+  targetTimeMs,
+  timeLimitMs,
+  type TableItem,
+} from './generate'
 import { TableReasoningView } from './TableReasoningView'
 
 export const tableReasoning: GameModule<TableItem, number> = {

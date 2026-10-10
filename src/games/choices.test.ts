@@ -5,7 +5,7 @@ import { makeChoices, makeLabelChoices, roundTo, shuffle } from './choices'
 const money = {
   format: (n: number) => formatAud(n, true),
   nudge: (n: number, rng: ReturnType<typeof createRng>) =>
-    roundCents(n * (1 + (rng.next() < 0.5 ? -1 : 1) * rng.int(5, 15) / 100)),
+    roundCents(n * (1 + ((rng.next() < 0.5 ? -1 : 1) * rng.int(5, 15)) / 100)),
 }
 
 describe('roundTo', () => {

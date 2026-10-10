@@ -1,9 +1,19 @@
 import { createRng } from '@/lib/rng'
 import { allowRepeats, flashMs, gapMs, gridSize, startLength, targetLength } from './levels'
-import { generateSequence, initRun, nextLength, runReducer, runResult, scoreRun, type RunEvent, type RunState } from './run'
+import {
+  generateSequence,
+  initRun,
+  nextLength,
+  runReducer,
+  runResult,
+  scoreRun,
+  type RunEvent,
+  type RunState,
+} from './run'
 
 const play = (state: RunState, ...events: RunEvent[]) => events.reduce(runReducer, state)
-const tapAll = (seq: number[], start: number) => seq.map((tile, i) => ({ type: 'tap' as const, tile, now: start + (i + 1) * 500 }))
+const tapAll = (seq: number[], start: number) =>
+  seq.map((tile, i) => ({ type: 'tap' as const, tile, now: start + (i + 1) * 500 }))
 
 describe('Sequence Recall levels', () => {
   it('grows the grid and start length with level', () => {
@@ -45,15 +55,32 @@ describe('run reducer', () => {
   it('grows after a success, holds after a mistake, and ends after two mistakes', () => {
     let s = initRun([0, 1, 2])
     s = play(s, { type: 'shown', now: 0 }, ...tapAll([0, 1, 2], 0))
-    expect(s).toMatchObject({ phase: 'feedback', lastOk: true, longest: 3, successes: 1, attempts: 1 })
+    expect(s).toMatchObject({
+      phase: 'feedback',
+      lastOk: true,
+      longest: 3,
+      successes: 1,
+      attempts: 1,
+    })
     expect(nextLength(s)).toBe(4)
 
     s = play(s, { type: 'next', sequence: [3, 4, 5, 6] }, { type: 'shown', now: 5000 })
     s = play(s, { type: 'tap', tile: 3, now: 5500 }, { type: 'tap', tile: 8, now: 6000 })
-    expect(s).toMatchObject({ phase: 'feedback', lastOk: false, mistakes: 1, wrongTile: 8, inputIndex: 1 })
+    expect(s).toMatchObject({
+      phase: 'feedback',
+      lastOk: false,
+      mistakes: 1,
+      wrongTile: 8,
+      inputIndex: 1,
+    })
     expect(nextLength(s)).toBe(4)
 
-    s = play(s, { type: 'next', sequence: [1, 2, 3, 4] }, { type: 'shown', now: 9000 }, { type: 'tap', tile: 0, now: 9500 })
+    s = play(
+      s,
+      { type: 'next', sequence: [1, 2, 3, 4] },
+      { type: 'shown', now: 9000 },
+      { type: 'tap', tile: 0, now: 9500 },
+    )
     expect(s.mistakes).toBe(2)
     s = play(s, { type: 'next', sequence: [5, 6, 7, 8] })
     expect(s.phase).toBe('done')
@@ -90,7 +117,12 @@ describe('scoreRun / runResult', () => {
 
   it('reports accuracy, average tap time and the summary stats', () => {
     let s = play(initRun([0, 1, 2]), { type: 'shown', now: 0 }, ...tapAll([0, 1, 2], 0))
-    s = play(s, { type: 'next', sequence: [0, 1, 2, 3] }, { type: 'shown', now: 0 }, { type: 'tap', tile: 5, now: 1000 })
+    s = play(
+      s,
+      { type: 'next', sequence: [0, 1, 2, 3] },
+      { type: 'shown', now: 0 },
+      { type: 'tap', tile: 5, now: 1000 },
+    )
     expect(runResult(s, 1)).toEqual({
       score: 27,
       accuracy: 0.5,

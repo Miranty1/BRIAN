@@ -5,7 +5,11 @@ import type { RuleItem } from './generate'
 import { ruleSwitch } from './index'
 import { RuleSwitchView } from './RuleSwitchView'
 
-const item: RuleItem = { rule: 'shape', card: { colour: 'blue', shape: 'square', fill: 'solid' }, correct: 'right' }
+const item: RuleItem = {
+  rule: 'shape',
+  card: { colour: 'blue', shape: 'square', fill: 'solid' },
+  correct: 'right',
+}
 
 describe('ruleSwitch module', () => {
   it('checks the side and labels the answer with the rule', () => {
@@ -42,9 +46,16 @@ describe('RuleSwitchView', () => {
   it('locks input and marks the right side during feedback', () => {
     const onAnswer = vi.fn()
     render(
-      <RuleSwitchView item={item} onAnswer={onAnswer} feedback={{ correct: false, answerLabel: 'Right — shape' }} />,
+      <RuleSwitchView
+        item={item}
+        onAnswer={onAnswer}
+        feedback={{ correct: false, answerLabel: 'Right — shape' }}
+      />,
     )
-    expect(screen.getByRole('button', { name: 'Right: square' })).toHaveAttribute('data-state', 'answer')
+    expect(screen.getByRole('button', { name: 'Right: square' })).toHaveAttribute(
+      'data-state',
+      'answer',
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Left: circle' }))
     expect(onAnswer).not.toHaveBeenCalled()
   })

@@ -51,32 +51,36 @@ describe('Money Maths generator', () => {
   })
 
   for (let level = 1; level <= 20; level++) {
-    it(`level ${level}: items fit the level and the answers are right`, () => {
-      const spec = levelSpec(level)
-      for (let seed = 1; seed <= 200; seed++) {
-        const items = generateItems(level, createRng(seed))
-        expect(items).toHaveLength(10)
-        expect(new Set(items.map((i) => i.prompt)).size).toBe(10)
-        for (const item of items) {
-          expect(spec.pool).toContain(item.type)
-          expect(new Set(item.options).size).toBe(item.options.length)
-          const correct = item.options[item.correctIndex]!
-          if (item.type === 'unitPrice') {
-            expect(item.options).toHaveLength(spec.unitProducts)
-            const best = Math.min(...item.options.map(perGram))
-            expect(perGram(correct)).toBe(best)
-            const rest = item.options.filter((o) => o !== correct).map(perGram)
-            expect(Math.min(...rest)).toBeGreaterThanOrEqual(best * 1.02)
-          } else {
-            expect(item.options).toHaveLength(4)
-            const usesCents = item.options.some((o) => o.includes('.'))
-            expect(correct).toBe(formatAud(expected(item), usesCents))
-            // One style per item: all options with cents, or none.
-            expect(item.options.every((o) => o.includes('.') === usesCents)).toBe(true)
+    it(
+      `level ${level}: items fit the level and the answers are right`,
+      () => {
+        const spec = levelSpec(level)
+        for (let seed = 1; seed <= 200; seed++) {
+          const items = generateItems(level, createRng(seed))
+          expect(items).toHaveLength(10)
+          expect(new Set(items.map((i) => i.prompt)).size).toBe(10)
+          for (const item of items) {
+            expect(spec.pool).toContain(item.type)
+            expect(new Set(item.options).size).toBe(item.options.length)
+            const correct = item.options[item.correctIndex]!
+            if (item.type === 'unitPrice') {
+              expect(item.options).toHaveLength(spec.unitProducts)
+              const best = Math.min(...item.options.map(perGram))
+              expect(perGram(correct)).toBe(best)
+              const rest = item.options.filter((o) => o !== correct).map(perGram)
+              expect(Math.min(...rest)).toBeGreaterThanOrEqual(best * 1.02)
+            } else {
+              expect(item.options).toHaveLength(4)
+              const usesCents = item.options.some((o) => o.includes('.'))
+              expect(correct).toBe(formatAud(expected(item), usesCents))
+              // One style per item: all options with cents, or none.
+              expect(item.options.every((o) => o.includes('.') === usesCents)).toBe(true)
+            }
           }
         }
-      }
-    }, SWEEP_TIMEOUT_MS)
+      },
+      SWEEP_TIMEOUT_MS,
+    )
   }
 
   it('uses only simple types and round prices at levels 1–4', () => {

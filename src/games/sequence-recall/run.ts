@@ -1,6 +1,14 @@
 import type { RunResult } from '@/games/types'
 import type { Rng } from '@/lib/rng'
-import { allowRepeats, gridSize, MAX_MISTAKES, startLength, TAP_GAP_CAP_MS, TARGET_STEPS, targetLength } from './levels'
+import {
+  allowRepeats,
+  gridSize,
+  MAX_MISTAKES,
+  startLength,
+  TAP_GAP_CAP_MS,
+  TARGET_STEPS,
+  targetLength,
+} from './levels'
 
 /** Tiles lit in order. No tile twice in a row; no repeats at all below L8 while the grid has room. */
 export function generateSequence(length: number, level: number, rng: Rng): number[] {
@@ -92,7 +100,14 @@ export function runReducer(state: RunState, event: RunEvent): RunState {
     case 'next':
       if (state.phase !== 'feedback') return state
       if (state.mistakes >= MAX_MISTAKES) return { ...state, phase: 'done' }
-      return { ...state, phase: 'show', sequence: event.sequence, inputIndex: 0, lastOk: null, wrongTile: null }
+      return {
+        ...state,
+        phase: 'show',
+        sequence: event.sequence,
+        inputIndex: 0,
+        lastOk: null,
+        wrongTile: null,
+      }
   }
 }
 

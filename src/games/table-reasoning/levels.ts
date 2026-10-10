@@ -14,7 +14,13 @@ const BASIC: QuestionType[] = ['difference', 'total']
 const MID: QuestionType[] = [...BASIC, 'average', 'pctChange', 'share', 'ratio']
 const HARD: QuestionType[] = [...MID, 'pickRow', 'pickRow', 'avgPctChange', 'avgPctChange']
 
-const lvl = (rows: number, cols: number, max: number, step: number, pool: QuestionType[]): TableLevel => ({
+const lvl = (
+  rows: number,
+  cols: number,
+  max: number,
+  step: number,
+  pool: QuestionType[],
+): TableLevel => ({
   rows,
   cols,
   values: { min: 10, max, step },

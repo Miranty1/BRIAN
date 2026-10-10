@@ -15,12 +15,23 @@ export { ITEMS_PER_ROUND } from './levels'
 
 export type Rule = 'colour' | 'shape' | 'fill'
 export type Side = 'left' | 'right'
-export type Card = { colour: 'blue' | 'orange'; shape: 'circle' | 'square'; fill: 'solid' | 'outline' }
+export type Card = {
+  colour: 'blue' | 'orange'
+  shape: 'circle' | 'square'
+  fill: 'solid' | 'outline'
+}
 export type RuleItem = { rule: Rule; card: Card; correct: Side }
 
 /** The attribute value that sorts left / right under each rule. */
-export const LEFT = { colour: 'blue', shape: 'circle', fill: 'solid' } as const satisfies Record<Rule, string>
-export const RIGHT = { colour: 'orange', shape: 'square', fill: 'outline' } as const satisfies Record<Rule, string>
+export const LEFT = { colour: 'blue', shape: 'circle', fill: 'solid' } as const satisfies Record<
+  Rule,
+  string
+>
+export const RIGHT = {
+  colour: 'orange',
+  shape: 'square',
+  fill: 'outline',
+} as const satisfies Record<Rule, string>
 
 const MAX_ATTEMPTS = 1000
 const clampLevel = (level: number) => Math.min(20, Math.max(1, Math.round(level)))
@@ -33,7 +44,8 @@ export const switchP = (level: number) => lerp(SWITCH_P_L1, SWITCH_P_L20, level)
 export const timeLimitMs = (level: number) => Math.round(lerp(LIMIT_MS_L1, LIMIT_MS_L20, level))
 export const targetTimeMs = (level: number) => Math.round(TARGET_SHARE * timeLimitMs(level))
 
-export const sideOf = (card: Card, rule: Rule): Side => (card[rule] === LEFT[rule] ? 'left' : 'right')
+export const sideOf = (card: Card, rule: Rule): Side =>
+  card[rule] === LEFT[rule] ? 'left' : 'right'
 
 export const isConflict = (card: Card, rule: Rule, rules: readonly Rule[]) =>
   rules.some((r) => r !== rule && sideOf(card, r) !== sideOf(card, rule))

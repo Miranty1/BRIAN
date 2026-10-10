@@ -1,5 +1,11 @@
 import type { GameModule } from '@/games/types'
-import { generateItems, ITEMS_PER_ROUND, targetTimeMs, timeLimitMs, type MoneyItem } from './generate'
+import {
+  generateItems,
+  ITEMS_PER_ROUND,
+  targetTimeMs,
+  timeLimitMs,
+  type MoneyItem,
+} from './generate'
 import { MoneyMathsView } from './MoneyMathsView'
 
 export const moneyMaths: GameModule<MoneyItem, number> = {

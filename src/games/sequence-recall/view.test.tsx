@@ -63,7 +63,9 @@ describe('SequenceRecallView', () => {
 
   it('leaves no timers running after quitting mid-show', () => {
     const onQuit = vi.fn()
-    const { unmount } = render(<SequenceRecallView level={1} rng={createRng(5)} onFinish={vi.fn()} onQuit={onQuit} />)
+    const { unmount } = render(
+      <SequenceRecallView level={1} rng={createRng(5)} onFinish={vi.fn()} onQuit={onQuit} />,
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Quit round' }))
     expect(onQuit).toHaveBeenCalled()
     unmount()

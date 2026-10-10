@@ -98,7 +98,9 @@ export function SequenceRecallView({ level, rng, onFinish, onQuit }: RunViewProp
           ✕
         </button>
         <div className={view.status}>
-          <span>{state.phase === 'show' ? 'Watch…' : state.phase === 'input' ? 'Your turn' : ' '}</span>
+          <span>
+            {state.phase === 'show' ? 'Watch…' : state.phase === 'input' ? 'Your turn' : ' '}
+          </span>
           <span className={view.lives} aria-label={`${left} mistakes left`}>
             {'●'.repeat(left)}
             {'○'.repeat(MAX_MISTAKES - left)}

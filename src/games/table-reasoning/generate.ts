@@ -15,14 +15,7 @@ export type Table = {
   rows: { label: string; values: number[] }[]
 }
 export type QuestionType =
-  | 'difference'
-  | 'total'
-  | 'average'
-  | 'pctChange'
-  | 'share'
-  | 'ratio'
-  | 'pickRow'
-  | 'avgPctChange'
+  'difference' | 'total' | 'average' | 'pctChange' | 'share' | 'ratio' | 'pickRow' | 'avgPctChange'
 export type TableItem = ChoiceItem & { type: QuestionType; table: Table }
 
 export const ITEMS_PER_ROUND = 10
@@ -91,11 +84,17 @@ const valueChoices = (correct: number, distractors: number[], unit: Unit, rng: R
   })
 
 const pctChoices = (correct: number, distractors: number[], dp: number, rng: Rng) =>
-  makeChoices(roundTo(correct, dp), distractors.map((d) => roundTo(d, dp)), rng, {
-    format: (n) => formatPct(n, dp),
-    nudge: (n, r) => roundTo(n + (r.next() < 0.5 ? -1 : 1) * (dp === 0 ? r.int(2, 9) : r.int(5, 30) / 10), dp),
-    allowNegative: true,
-  })
+  makeChoices(
+    roundTo(correct, dp),
+    distractors.map((d) => roundTo(d, dp)),
+    rng,
+    {
+      format: (n) => formatPct(n, dp),
+      nudge: (n, r) =>
+        roundTo(n + (r.next() < 0.5 ? -1 : 1) * (dp === 0 ? r.int(2, 9) : r.int(5, 30) / 10), dp),
+      allowNegative: true,
+    },
+  )
 
 type Built = { prompt: string; choices: { options: string[]; correctIndex: number } } | null
 
@@ -120,7 +119,11 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
         prompt: `How much higher ${t.be} ${t.measure} for ${label(a)} than for ${label(b)} in ${t.columns[c]}?`,
         choices: valueChoices(
           v(a, c) - v(b, c),
-          [Math.abs(v(a, otherC) - v(b, otherC)), Math.abs(v(a, c) - v(third, c)), v(a, c) + v(b, c)],
+          [
+            Math.abs(v(a, otherC) - v(b, otherC)),
+            Math.abs(v(a, c) - v(third, c)),
+            v(a, c) + v(b, c),
+          ],
           t.unit,
           rng,
         ),
@@ -132,7 +135,12 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
       const [x, y] = twoOf(nCols, rng)
       return {
         prompt: `What was the total ${t.measure} for ${label(r)} across all ${t.colNoun}s shown?`,
-        choices: valueChoices(sum(row), [sum(row) - row[x]!, sum(row) - row[y]!, sum(colVals(0))], t.unit, rng),
+        choices: valueChoices(
+          sum(row),
+          [sum(row) - row[x]!, sum(row) - row[y]!, sum(colVals(0))],
+          t.unit,
+          rng,
+        ),
       }
     }
     case 'average': {
@@ -143,7 +151,12 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
       const median = sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2
       return {
         prompt: `What was the average ${t.measure} per ${t.rowNoun} in ${t.columns[c]}, to the nearest whole number?`,
-        choices: valueChoices(mean(col), [sum(col), sum(col) / (col.length - 1), median], t.unit, rng),
+        choices: valueChoices(
+          mean(col),
+          [sum(col), sum(col) / (col.length - 1), median],
+          t.unit,
+          rng,
+        ),
       }
     }
     case 'pctChange': {
@@ -173,7 +186,10 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
             (v(nextRow, c) / sum(colVals(c))) * 100,
           ].map((d) => roundTo(d, 0)),
           rng,
-          { format: (n) => `${n}%`, nudge: (n, rr) => Math.max(1, n + (rr.next() < 0.5 ? -1 : 1) * rr.int(2, 9)) },
+          {
+            format: (n) => `${n}%`,
+            nudge: (n, rr) => Math.max(1, n + (rr.next() < 0.5 ? -1 : 1) * rr.int(2, 9)),
+          },
         ),
       }
     }
@@ -259,7 +275,8 @@ export function generateItems(level: number, rng: Rng, count = ITEMS_PER_ROUND):
   const seen = new Set<string>()
   const items: TableItem[] = []
   for (let attempt = 0; items.length < count; attempt++) {
-    if (attempt >= MAX_ATTEMPTS) throw new Error(`Couldn’t generate ${count} items for level ${level}`)
+    if (attempt >= MAX_ATTEMPTS)
+      throw new Error(`Couldn’t generate ${count} items for level ${level}`)
     const item = makeItem(spec, rng)
     if (seen.has(item.prompt)) continue
     seen.add(item.prompt)
