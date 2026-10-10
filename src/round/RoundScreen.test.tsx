@@ -27,6 +27,18 @@ const flushPromises = () =>
     for (let i = 0; i < 20; i++) await Promise.resolve()
   })
 
+const tiles = () => screen.getAllByRole('button', { name: /^Tile / })
+const tapTile = (i: number) => fireEvent.click(tiles()[i]!)
+function watch(): number[] {
+  const seen: number[] = []
+  for (let t = 0; t < 20000 && !screen.queryByText('Your turn'); t += 25) {
+    act(() => vi.advanceTimersByTime(25))
+    const lit = tiles().findIndex((el) => el.dataset.state === 'lit')
+    if (lit >= 0 && seen[seen.length - 1] !== lit) seen.push(lit)
+  }
+  return seen
+}
+
 function renderRound(path = '/play/speed-arithmetic') {
   const send = vi.fn(async (_round: PendingRound): Promise<SendResult> => ({ ok: true }))
   const store = createProgressStore({
@@ -146,5 +158,24 @@ describe('RoundScreen', () => {
     expect(screen.getByLabelText('Score 100 out of 100')).toBeInTheDocument()
     await flushPromises()
     expect(send.mock.calls[0]![0]).toMatchObject({ gameId: 'money-maths', accuracy: 1 })
+  })
+
+  it('plays a Sequence Recall run to the target and levels up', async () => {
+    const { send } = renderRound('/play/sequence-recall')
+    expect(screen.getByText(/Two mistakes ends the run/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+    for (let attempt = 0; attempt < 3; attempt++) {
+      watch().forEach(tapTile)
+      act(() => vi.advanceTimersByTime(400))
+    }
+    for (let miss = 0; miss < 2; miss++) {
+      const seq = watch()
+      tapTile((seq[0]! + 1) % 9)
+      act(() => vi.advanceTimersByTime(1000))
+    }
+    expect(screen.getByLabelText('Score 80 out of 100')).toBeInTheDocument()
+    expect(screen.getByText('1 → 2')).toBeInTheDocument()
+    await flushPromises()
+    expect(send.mock.calls[0]![0]).toMatchObject({ gameId: 'sequence-recall', score: 80, newLevel: 2 })
   })
 })
