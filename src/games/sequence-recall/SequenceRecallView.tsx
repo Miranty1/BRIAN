@@ -16,6 +16,9 @@ import view from './SequenceRecallView.module.css'
 
 const TAP_FLASH_MS = 150
 
+// Module-level clock: only called from timer callbacks and event handlers, never during render.
+const now = () => Date.now()
+
 type TileState = 'idle' | 'lit' | 'right' | 'wrong' | 'answer'
 
 export function SequenceRecallView({ level, rng, onFinish, onQuit }: RunViewProps) {
@@ -38,7 +41,7 @@ export function SequenceRecallView({ level, rng, onFinish, onQuit }: RunViewProp
       timers.push(setTimeout(() => setLit(null), on + flashMs(level)))
     })
     const end = LEAD_IN_MS + state.sequence.length * step
-    timers.push(setTimeout(() => dispatch({ type: 'shown', now: Date.now() }), end))
+    timers.push(setTimeout(() => dispatch({ type: 'shown', now: now() }), end))
     return () => {
       timers.forEach(clearTimeout)
       setLit(null)
@@ -72,7 +75,7 @@ export function SequenceRecallView({ level, rng, onFinish, onQuit }: RunViewProp
   function tap(tile: number) {
     if (state.phase !== 'input') return
     setPressed(tile)
-    dispatch({ type: 'tap', tile, now: Date.now() })
+    dispatch({ type: 'tap', tile, now: now() })
   }
 
   function tileState(i: number): TileState {
