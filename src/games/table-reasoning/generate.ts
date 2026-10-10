@@ -51,6 +51,12 @@ export function formatPct(n: number, dp: number): string {
   return `${r > 0 ? '+' : '−'}${body}%`
 }
 
+/** The level's spec with the cell range narrowed to what the theme allows. */
+const specFor = (spec: TableLevel, theme: Theme): TableLevel => ({
+  ...spec,
+  values: { ...spec.values, max: Math.min(spec.values.max, theme.maxValue ?? Infinity) },
+})
+
 function makeTable(theme: Theme, spec: TableLevel, rng: Rng): Table {
   const { min, max, step } = spec.values
   const cell = () => rng.int(Math.ceil(min / step), Math.floor(max / step)) * step
@@ -111,7 +117,7 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
       const otherC = (c + 1) % nCols
       const third = [...Array(nRows).keys()].find((r) => r !== a && r !== b) ?? b
       return {
-        prompt: `How much higher was ${label(a)}’s ${t.measure} than ${label(b)}’s in ${t.columns[c]}?`,
+        prompt: `How much higher ${t.be} ${t.measure} for ${label(a)} than for ${label(b)} in ${t.columns[c]}?`,
         choices: valueChoices(
           v(a, c) - v(b, c),
           [Math.abs(v(a, otherC) - v(b, otherC)), Math.abs(v(a, c) - v(third, c)), v(a, c) + v(b, c)],
@@ -125,7 +131,7 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
       const row = t.rows[r]!.values
       const [x, y] = twoOf(nCols, rng)
       return {
-        prompt: `What was ${label(r)}’s total ${t.measure} across all ${t.colNoun}s shown?`,
+        prompt: `What was the total ${t.measure} for ${label(r)} across all ${t.colNoun}s shown?`,
         choices: valueChoices(sum(row), [sum(row) - row[x]!, sum(row) - row[y]!, sum(colVals(0))], t.unit, rng),
       }
     }
@@ -147,7 +153,7 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
       if (from === to) return null
       const change = pctChange(from, to)
       return {
-        prompt: `What was the % change in ${label(r)}’s ${t.measure} from ${t.columns[0]} to ${t.columns[last]}, to the nearest whole %?`,
+        prompt: `What was the % change in ${t.measure} for ${label(r)} from ${t.columns[0]} to ${t.columns[last]}, to the nearest whole %?`,
         choices: pctChoices(change, [((to - from) / to) * 100, -change, to - from], 0, rng),
       }
     }
@@ -158,7 +164,7 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
       const grand = sum(t.rows.flatMap((row) => row.values))
       const nextRow = (r + 1) % nRows
       return {
-        prompt: `What % of ${t.columns[c]} ${t.measure} came from ${label(r)}, to the nearest whole %?`,
+        prompt: `What % of the combined ${t.measure} in ${t.columns[c]} was for ${label(r)}, to the nearest whole %?`,
         choices: makeChoices(
           roundTo(share, 0),
           [
@@ -197,7 +203,7 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
       const others = [`${y}:${x}`, `${v(a, c)}:${v(b, c)}`]
       if (third !== undefined) others.push(simplify(v(a, c), v(third, c)))
       return {
-        prompt: `What is the ratio of ${label(a)}’s to ${label(b)}’s ${t.measure} in ${t.columns[c]}, in simplest form?`,
+        prompt: `What is the ratio of ${t.measure} for ${label(a)} to ${label(b)} in ${t.columns[c]}, in simplest form?`,
         choices: makeLabelChoices(correct, others, rng, {
           fill: (rr) => `${x + rr.int(1, 3)}:${y}`,
         }),
@@ -238,8 +244,10 @@ function ask(type: QuestionType, t: Table, spec: TableLevel, rng: Rng): Built {
 function makeItem(spec: TableLevel, rng: Rng): TableItem {
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const type = rng.pick(spec.pool)
-    const table = makeTable(rng.pick(THEMES), spec, rng)
-    const built = ask(type, table, spec, rng)
+    const theme = rng.pick(THEMES)
+    const themed = specFor(spec, theme)
+    const table = makeTable(theme, themed, rng)
+    const built = ask(type, table, themed, rng)
     if (built) return { type, table, prompt: built.prompt, ...built.choices }
   }
   throw new Error('Couldn’t generate a table question')

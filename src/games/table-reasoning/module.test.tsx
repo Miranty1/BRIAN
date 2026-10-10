@@ -7,7 +7,7 @@ import { TableReasoningView } from './TableReasoningView'
 
 const item: TableItem = {
   type: 'difference',
-  prompt: 'How much higher was Store A’s sales than Store B’s in Feb?',
+  prompt: 'How much higher were sales for Store A than for Store B in Feb?',
   table: {
     title: 'Sales by store ($)',
     unit: '$',
